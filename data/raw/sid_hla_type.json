@@ -1,0 +1,22 @@
+{
+  "source": "Red Cross HLA typing via osteosarc.com/data/#hla",
+  "patient": "Sid Sijbrandij",
+  "class_I": {
+    "HLA-A": ["A*01:01", "A*01:11N"],
+    "HLA-B": ["B*08:01", "B*27:05"],
+    "HLA-C": ["C*01:02", "C*07:01"]
+  },
+  "class_II": {
+    "HLA-DPA1": ["*01:03", "*02:01"],
+    "HLA-DPB1": ["*04:01", "*11:01"],
+    "HLA-DQA1": ["*05:01", "*04:01"],
+    "HLA-DQB1": ["*04:02", "*02:01"],
+    "HLA-DRB1": ["*03:01", "*08:01"],
+    "HLA-DRB3": ["*01:01", "*01:01"],
+    "HLA-DRB4": "Absent"
+  },
+  "notes": {
+    "A*01:11N": "Null allele - not expressed at protein level. Effectively HLA-A homozygous for A*01:01",
+    "functional_class_I_alleles": ["HLA-A*01:01", "HLA-B*08:01", "HLA-B*27:05", "HLA-C*01:02", "HLA-C*07:01"]
+  }
+}

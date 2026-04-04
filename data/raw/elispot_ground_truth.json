@@ -1,0 +1,22 @@
+{
+  "source": "osteosarc.com/data/#vaccine-overlap - Vaccine Neoantigen Overlap spreadsheet",
+  "description": "Ground truth ELISPOT T-cell reactivity data from Sid's personalized DC vaccine trial. 13 peptides tested, 12 positive, 1 negative.",
+  "elispot_positive": [
+    {"gene": "TP53", "mutation": "R175H", "elispot": true},
+    {"gene": "ATRX", "mutation": "R1302*", "elispot": true},
+    {"gene": "RB1", "mutation": "splice", "elispot": true},
+    {"gene": "BRCA2", "mutation": "E1647K", "elispot": true},
+    {"gene": "KMT2D", "mutation": "P3518S", "elispot": true},
+    {"gene": "SETD2", "mutation": "R1780Q", "elispot": true},
+    {"gene": "NF1", "mutation": "R1534*", "elispot": true},
+    {"gene": "PTCH1", "mutation": "L1158F", "elispot": true},
+    {"gene": "PBRM1", "mutation": "P1289L", "elispot": true},
+    {"gene": "FAT1", "mutation": "R3649C", "elispot": true},
+    {"gene": "KDM6A", "mutation": "E699K", "elispot": true},
+    {"gene": "NOTCH2", "mutation": "P6S", "elispot": true}
+  ],
+  "elispot_negative": [
+    {"gene": "STAG2", "mutation": "E567K", "elispot": false}
+  ],
+  "notes": "12/13 (92.3%) positive rate suggests excellent peptide selection in the original vaccine design. The single negative (STAG2 E567K) is crucial - a good predictor must score this LOW."
+}

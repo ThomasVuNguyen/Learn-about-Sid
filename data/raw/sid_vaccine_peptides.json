@@ -1,0 +1,28 @@
+{
+  "source": "Google Sheets: sijbrandij.vaccine.overlap (https://docs.google.com/spreadsheets/d/17RE_Yyst9LzeNW_F6XcbV_RW3nYNgTuxopSWbGL0ozA/)",
+  "description": "Vaccine neoantigen peptide sequences with ELISPOT results from Sid's DC vaccine trial",
+  "peptides": [
+    {"gene": "EPG5", "mutation": "p.A869T", "peptide": "KELPLYLWQPSTSEIAVIRDWKK", "elispot": "positive_weak", "jlf_peptide_id": "JLF-100-038R.MT.76.EPG5.2"},
+    {"gene": "KIF1C", "mutation": "p.E456K", "peptide": "TEKIIAELNKTWEEKLRKTEA", "elispot": "positive_weak", "jlf_peptide_id": "JLF-100-038R.MT.60.KIF1C.2"},
+    {"gene": "KDM3B", "mutation": "p.P633S", "peptide": "HENLFLQPPKLSREESSNPFLAFVEK", "elispot": "positive_strong", "jlf_peptide_id": "JLF-100-038R.MT.29.KDM3B.1"},
+    {"gene": "BTD", "mutation": "p.F423V", "peptide": "RPTLSKELYALGVVDGLHTVHGT", "elispot": "positive_strong", "jlf_peptide_id": "JLF-100-038R.MT.19.BTD.1"},
+    {"gene": "MYO15B", "mutation": "p.V3797L", "peptide": "AGRRAQAPTRVLGLAPP", "elispot": "positive_weak", "jlf_peptide_id": "JLF-100-038R.MT.67.MYO15B.1"},
+    {"gene": "SLC25A12", "mutation": "p.I347T", "peptide": "GSVAGAVGATAVYPTDLVKTRMQNQR", "elispot": "negative_initial_positive_restim", "jlf_peptide_id": "JLF-100-038R.MT.8.SLC25A12.3"},
+    {"gene": "TECPR1", "mutation": "frameshift", "peptide": "GSEEASTLTIPAAPVGLRWLVR", "elispot": "negative_initial_positive_restim", "jlf_peptide_id": "JLF-100-038R.MT.38.TECPR1.1", "variant": 1},
+    {"gene": "TECPR1", "mutation": "frameshift", "peptide": "TSRWESAWSGLSPRTGR", "elispot": "positive_weak", "jlf_peptide_id": "JLF-100-038.MT.38.TECPR1.2", "variant": 2},
+    {"gene": "MAP2", "mutation": "frameshift", "peptide": "KTVRIYQGRVVPFTKALMIKFEEI", "elispot": "positive_strong", "jlf_peptide_id": "JLF-100-038.MT.14.MAP2.2"},
+    {"gene": "DYNC1H1", "mutation": "p.V3141", "peptide": "GKRFHATISFDTDTGLKQALETKK", "elispot": "positive_strong", "jlf_peptide_id": "JLF-100-038R.MT.52.DYNC1H1.2"},
+    {"gene": "MYO9A", "mutation": "frameshift", "peptide": "KKFDWIVFRINHALLNSKVLEHNTK", "elispot": "positive_strong", "jlf_peptide_id": "JLF-100-038R.MT.53.MYO9A.1"},
+    {"gene": "NR2F2", "mutation": "p.G65V", "peptide": "AQTAAGGQGGPGVPGSDKQQQQQHIE", "elispot": "negative", "jlf_peptide_id": "JLF-100-038R.MT.58.NR2F2.2"},
+    {"gene": "CUL9", "mutation": "p.D403Y", "peptide": "RMLDYYEEISAGDEGEFRQSKKK", "elispot": "positive_weak", "jlf_peptide_id": "JLF-100-038R.MT.33.CUL9.1"},
+    {"gene": "ADGRF5", "mutation": "p.H1290S", "peptide": "VQFALLSKFSLSRWSSQHSKST", "elispot": "positive_weak", "jlf_peptide_id": "JLF-100-038R.MT.34.ADGRF5.1"}
+  ],
+  "notes": {
+    "total_peptides": 14,
+    "positive_strong": 5,
+    "positive_weak": 5,
+    "negative_initial_positive_restim": 2,
+    "negative": 1,
+    "classification_for_bakeoff": "For binary scoring: positive_strong + positive_weak + negative_initial_positive_restim = POSITIVE (12). negative = NEGATIVE (1). NR2F2 is the only consistently negative peptide."
+  }
+}

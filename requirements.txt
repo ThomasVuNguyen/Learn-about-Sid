@@ -1,0 +1,21 @@
+# Core
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.3
+
+# Modal (serverless GPU)
+modal>=0.64
+
+# MHC predictors (installed in Modal containers, listed here for reference)
+# mhcflurry>=2.1
+# bigmhc (via git clone)
+
+# Biophysics
+biopython>=1.82
+
+# Visualization
+matplotlib>=3.8
+seaborn>=0.13
+
+# Analysis
+scipy>=1.11
