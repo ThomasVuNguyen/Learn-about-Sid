@@ -81,7 +81,7 @@ function createMutantSequence(sequence, position, altAA) {
 }
 
 // ── Initialize 3Dmol viewer ─────────────────────────────────────────────
-function initViewer(container, pdbData, mutationResidue, isMutant, highlightColor) {
+function initViewer(container, pdbData, mutationResidue, isMutant, highlightColor, viewStyle = 'cartoon') {
   if (!window.$3Dmol || !container || !pdbData) return null;
   
   const viewer = window.$3Dmol.createViewer(container, {
@@ -91,42 +91,57 @@ function initViewer(container, pdbData, mutationResidue, isMutant, highlightColo
   
   viewer.addModel(pdbData, 'pdb');
   
-  // Cartoon style for the whole structure
-  viewer.setStyle({}, {
-    cartoon: {
+  const hc = highlightColor || (isMutant ? '#ff4444' : '#44aaff');
+
+  if (viewStyle === 'surface') {
+    // Transparent surface + faint cartoon backbone
+    viewer.setStyle({}, {
+      cartoon: { color: 'spectrum', opacity: 0.3 },
+    });
+    viewer.addSurface(window.$3Dmol.SurfaceType.VDW, {
+      opacity: 0.8,
       color: 'spectrum',
-      opacity: 0.85,
+    }, {});
+    // Highlight mutation residue on top
+    if (mutationResidue) {
+      viewer.setStyle({ resi: mutationResidue }, {
+        cartoon: { color: hc, opacity: 1.0 },
+        stick: { color: hc, radius: 0.3 },
+      });
+      viewer.addSurface(window.$3Dmol.SurfaceType.VDW, {
+        opacity: 0.95,
+        color: hc,
+      }, { resi: mutationResidue });
     }
-  });
-  
-  // Highlight mutation site
-  if (mutationResidue) {
-    viewer.setStyle(
-      { resi: mutationResidue },
-      {
-        cartoon: { color: highlightColor || (isMutant ? '#ff4444' : '#44aaff'), opacity: 1.0 },
-        stick: { color: highlightColor || (isMutant ? '#ff4444' : '#44aaff'), radius: 0.25 },
-      }
-    );
-    
-    // Add label at mutation site
-    viewer.addLabel(
-      isMutant ? 'MUTANT' : 'WILD-TYPE',
-      {
-        position: { resi: mutationResidue },
-        fontSize: 11,
-        fontColor: 'white',
-        backgroundColor: isMutant ? '#ff4444' : '#44aaff',
-        backgroundOpacity: 0.75,
-        borderThickness: 0,
-      },
-      { resi: mutationResidue }
-    );
+  } else if (viewStyle === 'stick') {
+    // Ball-and-stick for all atoms
+    viewer.setStyle({}, {
+      stick: { colorscheme: 'Jmol', radius: 0.15 },
+      sphere: { colorscheme: 'Jmol', scale: 0.25 },
+    });
+    // Highlight mutation site
+    if (mutationResidue) {
+      viewer.setStyle({ resi: mutationResidue }, {
+        stick: { color: hc, radius: 0.3 },
+        sphere: { color: hc, scale: 0.4 },
+      });
+    }
+  } else {
+    // Default: cartoon ribbon
+    viewer.setStyle({}, {
+      cartoon: { color: 'spectrum', opacity: 0.85 },
+    });
+    if (mutationResidue) {
+      viewer.setStyle({ resi: mutationResidue }, {
+        cartoon: { color: hc, opacity: 1.0 },
+        stick: { color: hc, radius: 0.25 },
+      });
+    }
   }
   
   viewer.zoomTo();
   viewer.render();
-  viewer.spin('y', 0.5); // Slow spin for visual effect
+  viewer.spin('y', 0.5);
   
   return viewer;
 }
@@ -141,12 +156,22 @@ export default function ProteinViewer3D({ gene, uniprotId, sequence, position, r
   const [structureSource, setStructureSource] = useState(''); // 'alphafold' or 'esmfold'
   const [lib3DmolLoaded, setLib3DmolLoaded] = useState(!!window.$3Dmol);
   const [mode, setMode] = useState('region'); // 'region' = zoomed to mutation, 'full' = full protein
+  const [viewStyle, setViewStyle] = useState('cartoon'); // 'cartoon' | 'surface' | 'stick'
+  
+  const [expanded, setExpanded] = useState(false);
+  const [modalMode, setModalMode] = useState('region'); // 'region' | 'full'
   
   const wildTypeRef = useRef(null);
   const mutantRef = useRef(null);
   const wildViewerRef = useRef(null);
   const mutViewerRef = useRef(null);
   const autoLoadFired = useRef(false);
+  
+  // Expanded modal refs
+  const expandedWildRef = useRef(null);
+  const expandedMutRef = useRef(null);
+  const expandedWildViewerRef = useRef(null);
+  const expandedMutViewerRef = useRef(null);
 
   // Load 3Dmol.js dynamically (only once)
   useEffect(() => {
@@ -243,26 +268,56 @@ export default function ProteinViewer3D({ gene, uniprotId, sequence, position, r
         // Compact mode: only show region comparison stacked
         if (mutantPDB && wildTypeRef.current && mutantRef.current) {
           const regionMutPos = position - mutantPDB.regionStart;
-          wildViewerRef.current = initViewer(wildTypeRef.current, mutantPDB.wild, regionMutPos, false, '#44aaff');
-          mutViewerRef.current = initViewer(mutantRef.current, mutantPDB.mutant, regionMutPos, true, '#ff4444');
+          wildViewerRef.current = initViewer(wildTypeRef.current, mutantPDB.wild, regionMutPos, false, '#44aaff', viewStyle);
+          mutViewerRef.current = initViewer(mutantRef.current, mutantPDB.mutant, regionMutPos, true, '#ff4444', viewStyle);
         }
       } else if (mode === 'full' && wildTypePDB && wildTypeRef.current) {
-        wildViewerRef.current = initViewer(wildTypeRef.current, wildTypePDB, position, false);
+        wildViewerRef.current = initViewer(wildTypeRef.current, wildTypePDB, position, false, undefined, viewStyle);
       } else if (mode === 'region' && mutantPDB && wildTypeRef.current && mutantRef.current) {
         const regionMutPos = position - mutantPDB.regionStart;
-        wildViewerRef.current = initViewer(wildTypeRef.current, mutantPDB.wild, regionMutPos, false, '#44aaff');
-        mutViewerRef.current = initViewer(mutantRef.current, mutantPDB.mutant, regionMutPos, true, '#ff4444');
+        wildViewerRef.current = initViewer(wildTypeRef.current, mutantPDB.wild, regionMutPos, false, '#44aaff', viewStyle);
+        mutViewerRef.current = initViewer(mutantRef.current, mutantPDB.mutant, regionMutPos, true, '#ff4444', viewStyle);
       }
     }, 100);
     
     return () => clearTimeout(timer);
-  }, [status, lib3DmolLoaded, mode, wildTypePDB, mutantPDB, position, compact]);
+  }, [status, lib3DmolLoaded, mode, wildTypePDB, mutantPDB, position, compact, viewStyle]);
 
-  // Clean up viewers on unmount
+  // Render expanded modal viewers (responds to modalMode toggle too)
+  useEffect(() => {
+    if (!expanded || status !== 'ready' || !lib3DmolLoaded || !window.$3Dmol) return;
+    
+    const timer = setTimeout(() => {
+      // Clean previous
+      if (expandedWildViewerRef.current) { expandedWildViewerRef.current.clear(); expandedWildViewerRef.current = null; }
+      if (expandedMutViewerRef.current) { expandedMutViewerRef.current.clear(); expandedMutViewerRef.current = null; }
+      
+      if (modalMode === 'full' && wildTypePDB) {
+        if (expandedWildRef.current) {
+          expandedWildViewerRef.current = initViewer(expandedWildRef.current, wildTypePDB, position, false, '#44aaff', viewStyle);
+        }
+        if (expandedMutRef.current && wildTypePDB) {
+          expandedMutViewerRef.current = initViewer(expandedMutRef.current, wildTypePDB, position, true, '#ff4444', viewStyle);
+        }
+      } else if (mutantPDB) {
+        if (expandedWildRef.current && expandedMutRef.current) {
+          const regionMutPos = position - mutantPDB.regionStart;
+          expandedWildViewerRef.current = initViewer(expandedWildRef.current, mutantPDB.wild, regionMutPos, false, '#44aaff', viewStyle);
+          expandedMutViewerRef.current = initViewer(expandedMutRef.current, mutantPDB.mutant, regionMutPos, true, '#ff4444', viewStyle);
+        }
+      }
+    }, 150);
+    
+    return () => clearTimeout(timer);
+  }, [expanded, status, lib3DmolLoaded, mutantPDB, wildTypePDB, position, modalMode, viewStyle]);
+
+  // Clean up all viewers on unmount
   useEffect(() => {
     return () => {
       if (wildViewerRef.current) { wildViewerRef.current.clear(); }
       if (mutViewerRef.current) { mutViewerRef.current.clear(); }
+      if (expandedWildViewerRef.current) { expandedWildViewerRef.current.clear(); }
+      if (expandedMutViewerRef.current) { expandedMutViewerRef.current.clear(); }
     };
   }, []);
 
@@ -313,8 +368,90 @@ export default function ProteinViewer3D({ gene, uniprotId, sequence, position, r
         )}
 
         {status === 'ready' && (
-          <div className="pv3d-compact-caption">
-            Shape difference at pos {position}
+          <div className="pv3d-compact-footer">
+            <div className="pv3d-compact-caption">
+              Shape difference at pos {position}
+            </div>
+            <button className="pv3d-expand-btn" onClick={() => setExpanded(true)} title="Expand 3D view">
+              ⛶
+            </button>
+          </div>
+        )}
+        {/* ── Fullscreen Modal ── */}
+        {expanded && (
+          <div className="pv3d-modal-overlay" onClick={() => setExpanded(false)}>
+            <div className="pv3d-modal" onClick={e => e.stopPropagation()}>
+              <div className="pv3d-modal-header">
+                <div className="pv3d-modal-title">
+                  🧊 3D Shape Comparison — <strong>{gene}</strong> {refAA}{position}{altAA}
+                </div>
+                <div className="pv3d-modal-controls">
+                  <div className="pv3d-modal-toggle">
+                    <button
+                      className={`pv3d-modal-toggle-btn ${modalMode === 'region' ? 'active' : ''}`}
+                      onClick={() => setModalMode('region')}
+                    >
+                      🔬 Region
+                    </button>
+                    <button
+                      className={`pv3d-modal-toggle-btn ${modalMode === 'full' ? 'active' : ''}`}
+                      onClick={() => setModalMode('full')}
+                      disabled={!wildTypePDB}
+                      title={!wildTypePDB ? 'Full protein structure not available' : 'View full protein'}
+                    >
+                      🧬 Full Protein
+                    </button>
+                  </div>
+                  <div className="pv3d-style-toggle">
+                    <button
+                      className={`pv3d-style-btn ${viewStyle === 'cartoon' ? 'active' : ''}`}
+                      onClick={() => setViewStyle('cartoon')}
+                      title="Ribbon / Cartoon view"
+                    >
+                      🎗️ Ribbon
+                    </button>
+                    <button
+                      className={`pv3d-style-btn ${viewStyle === 'surface' ? 'active' : ''}`}
+                      onClick={() => setViewStyle('surface')}
+                      title="Molecular surface view"
+                    >
+                      🫧 Surface
+                    </button>
+                    <button
+                      className={`pv3d-style-btn ${viewStyle === 'stick' ? 'active' : ''}`}
+                      onClick={() => setViewStyle('stick')}
+                      title="Ball-and-stick atomic view"
+                    >
+                      ⚛️ Stick
+                    </button>
+                  </div>
+                  <button className="pv3d-modal-close" onClick={() => setExpanded(false)}>✕</button>
+                </div>
+              </div>
+              <div className="pv3d-modal-viewers">
+                <div className="pv3d-modal-panel">
+                  <div className="pv3d-modal-panel-label wt">
+                    <span className="pv3d-label-dot wt"></span>
+                    {modalMode === 'full' ? 'Full Protein — Wild-Type' : 'Healthy (Wild-Type)'}
+                  </div>
+                  <div className="pv3d-modal-canvas" ref={expandedWildRef} key={`wt-${modalMode}`} />
+                </div>
+                <div className="pv3d-modal-vs">VS</div>
+                <div className="pv3d-modal-panel">
+                  <div className="pv3d-modal-panel-label mut">
+                    <span className="pv3d-label-dot mut"></span>
+                    {modalMode === 'full' ? 'Full Protein — Mutation Site' : 'Mutant'}
+                  </div>
+                  <div className="pv3d-modal-canvas" ref={expandedMutRef} key={`mut-${modalMode}`} />
+                </div>
+              </div>
+              <div className="pv3d-modal-caption">
+                {modalMode === 'full'
+                  ? `Full-length ${gene} protein${structureSource === 'alphafold' ? ' from AlphaFold DB' : ''}. Mutation at position ${position} highlighted. Drag to rotate · Scroll to zoom.`
+                  : `~60 amino acid region around position ${position}. Wild-type vs Mutant folded with ESMFold. Drag to rotate · Scroll to zoom.`
+                }
+              </div>
+            </div>
           </div>
         )}
       </div>
